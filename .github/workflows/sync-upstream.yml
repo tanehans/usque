@@ -1,0 +1,34 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # every day at 04:00 UTC
+  workflow_dispatch:       # allow manual trigger from the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/Diniboy1123/usque.git
+          git fetch upstream
+
+      - name: Rebase main on upstream/main
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git rebase upstream/main
+
+      - name: Push updated main
+        run: git push origin main --force-with-lease
